@@ -1,0 +1,10 @@
+// src/common/decorators/current-user.decorator.ts
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { RequestWithUser } from '../interfaces/request-with-user.interface';
+
+export const CurrentUser = createParamDecorator(
+  (_: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest<RequestWithUser>();
+    return request.user;
+  },
+);

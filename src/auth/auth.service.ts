@@ -52,24 +52,20 @@ export class AuthService {
   }
 
   refresh(oldRefreshToken: string) {
-    try {
-      const payload = this.jwtService.verify<JwtPayload>(oldRefreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
-      });
+    const payload = this.jwtService.verify<JwtPayload>(oldRefreshToken, {
+      secret: process.env.JWT_REFRESH_SECRET,
+    });
 
-      const accessToken = this.jwtService.sign(payload, {
-        expiresIn: '15m',
-        secret: process.env.JWT_ACCESS_SECRET,
-      });
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: '15m',
+      secret: process.env.JWT_ACCESS_SECRET,
+    });
 
-      const refreshToken = this.jwtService.sign(payload, {
-        expiresIn: '7d',
-        secret: process.env.JWT_REFRESH_SECRET,
-      });
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: '7d',
+      secret: process.env.JWT_REFRESH_SECRET,
+    });
 
-      return { accessToken, refreshToken };
-    } catch {
-      throw new UnauthorizedException();
-    }
+    return { accessToken, refreshToken };
   }
 }

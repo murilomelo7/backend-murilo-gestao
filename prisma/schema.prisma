@@ -8,14 +8,30 @@ datasource db {
   provider = "postgresql"
 }
 
+// ----------------------------------------------------
+// MODELS BASE
+// ----------------------------------------------------
+// Enum para definir se é Entrada ou Saída
+enum TransactionType {
+  INCOME // Entrada (Receita)
+  EXPENSE // Saída (Despesa)
+}
+
 model User {
   id        String   @id @default(uuid())
   name      String
-  email     String  @unique
+  email     String   @unique
   password  String
   role      Role     @default(TENANT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relações One-to-Many para o multi-tenant:
+  accounts     Account[]
+  categories   Category[]
+  transactions Transaction[]
+  recurring    RecurringTransaction[]
+  installments Installment[]
 
   @@map("users")
 }
@@ -23,4 +39,105 @@ model User {
 enum Role {
   TENANT
   ADMIN
+}
+
+// ----------------------------------------------------
+// MODELS DE FINANÇAS (FLUXO DE CAIXA)
+// ----------------------------------------------------
+
+// 2. Account: Onde o dinheiro está
+model Account {
+  id             String   @id @default(uuid())
+  userId         String
+  name           String // Ex: "Banco A", "Carteira", "Poupança"
+  initialBalance Decimal  @db.Decimal(14, 2)
+  createdAt      DateTime @default(now())
+
+  user         User                   @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+  recurring    RecurringTransaction[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("accounts")
+}
+
+// 3. Category: Categorização de Entrada/Saída
+model Category {
+  id        String          @id @default(uuid())
+  userId    String // Chave de relação com User (Multi-tenant)
+  name      String
+  type      TransactionType // INCOME ou EXPENSE
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user         User                   @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+  recurring    RecurringTransaction[]
+
+  @@unique([userId, name, type])
+  @@index([userId])
+  @@map("categories")
+}
+
+// 4. Transaction: Movimentação de Caixa Efetiva
+model Transaction {
+  id          String          @id @default(uuid())
+  userId      String
+  accountId   String // A conta afetada
+  categoryId  String
+  type        TransactionType
+  description String?
+  amount      Decimal         @db.Decimal(14, 2)
+  date        DateTime // Data de EFETIVAÇÃO
+  createdAt   DateTime        @default(now())
+
+  // Relações
+  user     User     @relation(fields: [userId], references: [id])
+  account  Account  @relation(fields: [accountId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  // Parcelamento
+  installmentId String?
+  installment   Installment? @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("transactions")
+}
+
+// 5. RecurringTransaction: Transações Agendadas/Recorrentes
+model RecurringTransaction {
+  id          String          @id @default(uuid())
+  userId      String
+  accountId   String
+  categoryId  String
+  type        TransactionType
+  description String?
+  amount      Decimal         @db.Decimal(14, 2)
+  startDate   DateTime // Início da recorrência
+  recurrence  String // Ex: "monthly", "weekly", "yearly"
+  endDate     DateTime? // Opcional: Fim da recorrência
+  createdAt   DateTime        @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  account  Account  @relation(fields: [accountId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([userId, startDate])
+  @@map("recurring_transactions")
+}
+
+// 6. Installment: Gestão de Parcelamento (Opcional)
+model Installment {
+  id                 String   @id @default(uuid())
+  userId             String
+  originalAmount     Decimal  @db.Decimal(14, 2) // Valor total da compra parcelada
+  totalInstallments  Int // Total de parcelas
+  currentInstallment Int // Qual parcela estamos rastreando (Ex: 1/12)
+  createdAt          DateTime @default(now())
+
+  user         User          @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+
+  @@map("installments")
 }
