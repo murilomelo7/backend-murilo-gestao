@@ -9,3 +9,14 @@ export class CreateCategoryDto {
   @IsNotEmpty()
   type: TransactionType;
 }
+
+
+// export class CreateCategoryDto {
+//   @IsString()
+//   @IsNotEmpty()
+//   name: string;
+
+//   @IsIn(Object.values(TransactionType))
+//   @IsNotEmpty()
+//   type: TransactionType;
+// }
