@@ -51,8 +51,9 @@ model Account {
   userId         String
   name           String // Ex: "Banco A", "Carteira", "Poupança"
   initialBalance Decimal  @db.Decimal(14, 2)
+  balance       Decimal  @db.Decimal(14, 2)
   createdAt      DateTime @default(now())
-
+  
   user         User                   @relation(fields: [userId], references: [id])
   transactions Transaction[]
   recurring    RecurringTransaction[]
@@ -91,6 +92,10 @@ model Transaction {
   amount      Decimal         @db.Decimal(14, 2)
   date        DateTime // Data de EFETIVAÇÃO
   createdAt   DateTime        @default(now())
+
+  reversedFromId String?
+  reversedFrom   Transaction? @relation("TransactionReversal", fields: [reversedFromId], references: [id])
+  reversals      Transaction[] @relation("TransactionReversal")
 
   // Relações
   user     User     @relation(fields: [userId], references: [id])

@@ -1,5 +1,5 @@
-import { Injectable, Scope } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { Category } from 'generated/prisma/client';
 import { Prisma } from 'generated/prisma/browser';
@@ -18,5 +18,13 @@ export class CategoryService {
       user: { connect: { id: userId } },
     };
     return this.prismaService.category.create({ data });
+  }
+
+  async findAll(userId: string): Promise<Category[]> {
+    return this.prismaService.category.findMany({ where: { userId } });
+  }
+
+  async findById(id: string, userId: string): Promise<Category | null> {
+    return this.prismaService.category.findUnique({ where: { id, userId } });
   }
 }

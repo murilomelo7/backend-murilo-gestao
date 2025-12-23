@@ -4,8 +4,23 @@ import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+
+
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const config = new DocumentBuilder()
+    .setTitle('Murilo gestão - Backend')
+    .setDescription('Documentação da API do sistema de gestão.')
+    .setVersion('1.0')
+    .addTag('murilo-gestao')
+    .build();
+
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, documentFactory);
+
   app.use(cookieParser());
   app.use(helmet());
   app.enableCors({
