@@ -9,5 +9,6 @@ import { CategoryModule } from 'src/modules/category/category.module';
   imports: [PrismaModule, AccountModule, CategoryModule],
   controllers: [TransactionController],
   providers: [TransactionService],
+  exports: [TransactionService],
 })
 export class TransactionModule {}
