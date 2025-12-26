@@ -57,12 +57,12 @@ export class AuthService {
     });
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: '15m',
+      // expiresIn: '15m',
       secret: process.env.JWT_ACCESS_SECRET,
     });
 
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: '7d',
+      // expiresIn: '7d',
       secret: process.env.JWT_REFRESH_SECRET,
     });
 

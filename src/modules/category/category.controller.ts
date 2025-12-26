@@ -6,6 +6,7 @@ import {
   Post,
   Get,
   UseGuards,
+  Param,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -30,7 +31,13 @@ export class CategoryController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Get('find-all')
+  @Get(':id')
+  async findById(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.categoryService.findById(id, user.sub);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get()
   async findAll(@CurrentUser() user: JwtPayload): Promise<Category[]> {
     return this.categoryService.findAll(user.sub);
   }
